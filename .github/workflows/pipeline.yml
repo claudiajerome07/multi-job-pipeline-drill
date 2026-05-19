@@ -1,0 +1,67 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: ['*']
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm run lint
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm test
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm run build
+      # Problem 4: no upload-artifact step — dist/ is never saved
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      # Problem 2: no download-artifact — dist/ does not exist on this machine
+      - run: npm run test:integration
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    # Problem 3: no if condition — runs on every branch
+    steps:
+      - run: echo "Deploying to staging environment"
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Deploying to production environment"
+
+  notify:
+    runs-on: ubuntu-latest
+    # Problem 6: no if: always() — skipped when upstream fails
+    steps:
+      - run: echo "Pipeline notification sent"

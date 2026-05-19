@@ -1,0 +1,32 @@
+{
+  "name": "multi-job-pipeline-drill",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint src/",
+    "test": "jest src/api.test.js",
+    "test:integration": "jest src/integration/",
+    "build": "mkdir -p dist && cp src/api.js dist/api.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kalviumcommunity/multi-job-pipeline-drill.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/kalviumcommunity/multi-job-pipeline-drill/issues"
+  },
+  "homepage": "https://github.com/kalviumcommunity/multi-job-pipeline-drill#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "eslint": "^10.4.0",
+    "jest": "^30.4.2",
+    "supertest": "^7.2.2"
+  }
+}
