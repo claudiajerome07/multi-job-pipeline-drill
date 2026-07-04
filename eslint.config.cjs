@@ -3,26 +3,29 @@ const js = require("@eslint/js");
 module.exports = [
   js.configs.recommended,
   {
-    files: [
-      "src/**/*.js"
-    ],
+    files: ["src/**/*.js"],
     languageOptions: {
-      ecmaVersion: 2021,
+      ecmaVersion: "latest",
       sourceType: "commonjs",
       globals: {
-        console: "readonly",
-        module: "readonly",
+        // Node
         require: "readonly",
-        process: "readonly",
+        module: "readonly",
         __dirname: "readonly",
+        process: "readonly",
+        console: "readonly",
+
+        // Jest
         describe: "readonly",
+        it: "readonly",
         test: "readonly",
         expect: "readonly",
+        beforeAll: "readonly",
         beforeEach: "readonly",
+        afterAll: "readonly",
         afterEach: "readonly",
         jest: "readonly",
       },
     },
-    rules: {},
   },
 ];
