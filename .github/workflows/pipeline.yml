@@ -2,7 +2,7 @@ name: CI Pipeline
 
 on:
   push:
-    branches: ['*']
+    branches: ["*"]
   pull_request:
     branches: [main]
 
@@ -10,51 +10,39 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-
+          node-version: "20"
       - run: npm ci
       - run: npm run lint
 
   unit-tests:
-    # Run unit tests only after lint succeeds
+    # Unit tests must wait for lint to pass so we do not spend CI time validating broken code.
     needs: lint
-
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-
+          node-version: "20"
       - run: npm ci
       - run: npm test
 
   build:
-    # Build should start only after lint passes
+    # Build follows lint so the artifact is only created from code that passed static checks.
     needs: lint
-
     runs-on: ubuntu-latest
     timeout-minutes: 20
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-
+          node-version: "20"
       - run: npm ci
       - run: npm run build
-
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
@@ -62,59 +50,54 @@ jobs:
           path: dist/
 
   integration-tests:
-    # Integration tests require the build artifact
+    # Integration tests depend on the build artifact so they validate the exact output produced by the build job.
     needs: build
-
     runs-on: ubuntu-latest
     timeout-minutes: 30
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-
+          node-version: "20"
       - run: npm ci
-
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
           name: app-build
           path: dist/
-
-      - run: npm run test:integration
+      - run: ls -R dist && npm run test:integration
 
   deploy-staging:
-    # Deploy only after unit and integration tests pass
-    needs:
-      - unit-tests
-      - integration-tests
-
+    # Staging waits for both unit and integration validation to succeed before releasing to the staging environment.
+    needs: [unit-tests, integration-tests]
     if: github.ref == 'refs/heads/main'
-
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
     steps:
       - run: echo "Deploying to staging environment"
 
   deploy-production:
-    # Production deployment must wait for staging deployment
+    # Production depends on staging to ensure a release only occurs after a successful staged validation path.
     needs: deploy-staging
-
     if: github.ref == 'refs/heads/main'
-
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
     steps:
       - run: echo "Deploying to production environment"
 
   notify:
+    # Notify always runs after the main pipeline state is known so the team can see a final status even on failures.
+    needs:
+      [
+        lint,
+        unit-tests,
+        build,
+        integration-tests,
+        deploy-staging,
+        deploy-production,
+      ]
     if: always()
-
     runs-on: ubuntu-latest
-
+    timeout-minutes: 10
     steps:
       - run: echo "Pipeline notification sent"
